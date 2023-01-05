@@ -15,9 +15,10 @@ const Task = ({ task }) => {
   const dispatch = useDispatch();
 
   const selectedDay = useSelector((state) => state.tasks.selectedDay);
+  const user = useSelector((state) => state.tasks.user);
 
   const checkIconClick = () => {
-    toggleCheckTask(selectedDay, ...task);
+    toggleCheckTask(user, selectedDay, ...task);
   };
 
   const editTask = () => {

@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
 import { selectTask } from '../../redux/TasksSlice';
@@ -17,13 +17,15 @@ const BottomMenu = ({ selectedTask, selectedDay }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const user = useSelector((state) => state.tasks.user);
+
   const [confirmOpened, setConfirmOpened] = useState(false);
 
   const unselectTask = () => dispatch(selectTask({ task: null }));
 
   const checkTaskClick = () => {
     unselectTask();
-    toggleCheckTask(selectedDay, ...selectedTask);
+    toggleCheckTask(user, selectedDay, ...selectedTask);
     navigate(-1);
   };
 
@@ -32,7 +34,7 @@ const BottomMenu = ({ selectedTask, selectedDay }) => {
   };
 
   const confirmDeletion = async () => {
-    deleteTask(selectedDay, selectedTask[0]);
+    deleteTask(user, selectedDay, selectedTask[0]);
     unselectTask();
     navigate('/calendar');
   };

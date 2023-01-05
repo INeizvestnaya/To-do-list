@@ -49,14 +49,19 @@ The last step is registration in the app when you run it.
 
 ## Database snapshot
 
-Data in this firebase project in stored in Firestore Database in "tasks" collection.
+Data in this firebase project in stored in Firestore Database which is noSQL database.
+There are collections and docs.
 
-Collection includes docs for every days which have tasks. DOcs are named as days DD.MM.YYYY.
+The main collection is "users". It has documents for every user who is registered in the app and has tasks.
+
+The user document has "tasks" subcollection which stores all tasks of the user, divided by days.
+
+It has documents for every day which has tasks.
 
 Each doc contains fields named as tasks names which contains descriptions of the tasks
 in the "description" field and "done" fields.
 
-There are 3 actions in database. They are stored in utils/firestoreActions.js file
+There are 4 actions in database. They are stored in utils/firestoreActions.js file
 
 ### toggleCheckTask
 
@@ -72,8 +77,12 @@ It adds or updates the task.
 
 The logic may be unclear at first. It also deletes some task.
 
-It is done because it is used in updating, and when you change the name of the task
-you need to delete the task with the previous name to avoid duplications.
+It is done because it is used in updating, and when you change the name or date of the task
+you need to delete the task with to avoid duplications.
+
+### deleteDay
+
+Past days are automatically deleted in order not to store outdate data in the storage.
 
 ## Application stack
 

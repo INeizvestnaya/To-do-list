@@ -1,9 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+import { auth } from '../firebase-config';
+
 const initialState = {
   tasks: {},
   selectedDay: new Date().toLocaleDateString(),
-  selectedTask: null
+  selectedTask: null,
+  user: auth.currentUser?.uid
 };
 
 const TasksSlice = createSlice({
@@ -21,10 +24,15 @@ const TasksSlice = createSlice({
     selectTask: (state, action) => {
       // eslint-disable-next-line no-param-reassign
       state.selectedTask = action.payload.task;
+    },
+    setUser: (state, action) => {
+      // eslint-disable-next-line no-param-reassign
+      state.user = action.payload;
     }
   }
 });
 
-export const { updateTasks, selectDay, selectTask } = TasksSlice.actions;
+export const { updateTasks, selectDay, selectTask, setUser } =
+  TasksSlice.actions;
 
 export default TasksSlice.reducer;

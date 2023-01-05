@@ -18,7 +18,7 @@ import Register from './pages/Register/Register';
 import SignIn from './pages/SignIn/SignIn';
 import TaskEditor from './pages/TaskEditor/TaskEditor';
 import TaskPage from './pages/TaskPage/TaskPage';
-import { updateTasks } from './redux/TasksSlice';
+import { setUser as setUserAction, updateTasks } from './redux/TasksSlice';
 import { deleteDay } from './utils/firestoreActions';
 import theme from './utils/theme';
 
@@ -32,37 +32,50 @@ const App = () => {
 
   const allTasks = useSelector((state) => state.tasks.tasks);
 
+  const [user, setUser] = useState(auth.currentUser?.uid);
+
   useEffect(() => {
     const tasksDates = Object.keys(allTasks).map((dateString) => {
       const [day, month, year] = dateString.split('.');
       return { date: new Date(+year, +month - 1, +day), dateString };
     });
+
     tasksDates.forEach((taskDate) => {
       if (taskDate.date < today) {
-        deleteDay(taskDate.dateString);
+        deleteDay(user, taskDate.dateString);
       }
     });
   }, [allTasks]);
 
-  const [user, setUser] = useState(auth.currentUser);
-
-  onAuthStateChanged(auth, (userInfo) => {
-    if (userInfo) {
-      setUser(userInfo.uid);
-    } else {
-      setUser(null);
-    }
-  });
-
   useEffect(() => {
-    onSnapshot(query(collection(firestore, 'tasks')), (days) => {
-      const tasks = {};
-      days.forEach((day) => {
-        tasks[day.id] = day.data();
-      });
-      dispatch(updateTasks({ tasks }));
+    onAuthStateChanged(auth, (userInfo) => {
+      if (userInfo) {
+        setUser(userInfo.uid);
+        dispatch(setUserAction(userInfo.uid));
+      } else {
+        setUser(null);
+        dispatch(setUserAction(null));
+      }
     });
   }, []);
+
+  useEffect(() => {
+    let unsubscribe = null;
+    if (user) {
+      unsubscribe = onSnapshot(
+        query(collection(firestore, `users/${user}/tasks`)),
+        (days) => {
+          const tasks = {};
+          days.forEach((day) => {
+            tasks[day.id] = day.data();
+          });
+          dispatch(updateTasks({ tasks }));
+        }
+      );
+    }
+
+    return () => unsubscribe?.();
+  }, [user]);
 
   const router = createBrowserRouter(
     createRoutesFromElements(

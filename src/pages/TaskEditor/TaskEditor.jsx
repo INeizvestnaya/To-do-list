@@ -22,6 +22,7 @@ const TaskEditor = () => {
 
   const selectedTask = useSelector((state) => state.tasks.selectedTask);
   const selectedDay = useSelector((state) => state.tasks.selectedDay);
+  const user = useSelector((state) => state.tasks.user);
 
   const [name, setName] = useState(selectedTask?.[0] || '');
 
@@ -73,14 +74,17 @@ const TaskEditor = () => {
 
   const save = () => {
     const newTaskDate = date.format('DD.MM.YYYY');
+    const prevDate = search !== '?new-task' ? selectedDay : null;
 
     unselectTask();
     dispatch(selectDay({ day: newTaskDate }));
     addTask(
+      user,
       newTaskDate,
       name,
       { description, done: !!selectedTask?.[1].done },
-      selectedTask?.[0]
+      selectedTask?.[0],
+      prevDate
     );
 
     navigate('/calendar');

@@ -47,7 +47,9 @@ const Calendar = () => {
   return (
     <>
       <ToastContainer position="top-center" theme="colored" />
-      <HeaderBar rightItem={HeaderButton}>Tassker</HeaderBar>
+      <HeaderBar rightItem={HeaderButton}>
+        {auth.currentUser?.email || 'Guest'}
+      </HeaderBar>
       <DaysTable selectDay={selectDay} tasks={tasks} />
       <DayTasks dayTasks={tasks[selectedDay]} />
       <Button
