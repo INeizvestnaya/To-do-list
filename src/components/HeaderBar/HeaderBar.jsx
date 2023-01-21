@@ -5,8 +5,10 @@ import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import classes from './HeaderBar.module.css';
+
 const HeaderBar = ({ children, leftItem, rightItem }) => (
-  <Box sx={{ flexGrow: 1 }}>
+  <Box>
     <AppBar position="static">
       <Toolbar>
         {leftItem}
@@ -15,7 +17,7 @@ const HeaderBar = ({ children, leftItem, rightItem }) => (
           margin="normal"
           component="div"
           marginLeft={2}
-          sx={{ flexGrow: 1 }}
+          className={classes.label}
         >
           {children}
         </Typography>

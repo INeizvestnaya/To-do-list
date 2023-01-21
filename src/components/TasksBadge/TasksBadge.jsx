@@ -1,18 +1,16 @@
-import Badge from '@mui/material/Badge';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import { StyledBadge } from './components';
+
 const TasksBadge = ({ dark, left, display }) => {
   return (
-    <Badge
+    <StyledBadge
       badgeContent=" "
       variant="dot"
       color={dark ? 'info' : 'primary'}
-      sx={{
-        position: 'relative',
-        left: left ? '10px' : '-10px',
-        visibility: display ? 'visible' : 'hidden'
-      }}
+      left={left ? 'left' : undefined}
+      display={display ? 'display' : undefined}
     />
   );
 };

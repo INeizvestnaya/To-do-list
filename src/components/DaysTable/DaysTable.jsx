@@ -5,15 +5,23 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+import {
+  selectAllTasks,
+  selectDay as daySelector
+} from '../../redux/selectors';
+import { setDay } from '../../redux/TasksSlice';
 import TasksBadge from '../TasksBadge/TasksBadge';
+import { StyledTypography } from './components';
+import classes from './DaysTable.module.css';
 
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
+const getYesterday = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday;
+};
 
 const months = [
   'January',
@@ -46,10 +54,32 @@ const renderMonth = (lastShownDay) => {
   return monthDays;
 };
 
-const DaysTable = ({ selectDay, tasks }) => {
-  const selectedDay = useSelector((state) => state.tasks.selectedDay);
+const DaysTable = () => {
+  const dispatch = useDispatch();
 
-  const [days, setDays] = useState(renderMonth(yesterday));
+  const selectedDay = useSelector(daySelector);
+  const tasks = useSelector(selectAllTasks);
+
+  const [days, setDays] = useState(renderMonth(getYesterday()));
+
+  useEffect(() => {
+    const dayParts = selectedDay.split('.');
+    const selected = new Date(dayParts[2], dayParts[1] - 1, dayParts[0]);
+
+    if (selected > days.at(-1)) {
+      setDays((prevState) => {
+        let newDays = [...prevState];
+        while (selected > newDays.at(-1)) {
+          newDays = [...newDays, ...renderMonth(newDays.at(-1))];
+        }
+        return newDays;
+      });
+    }
+  }, [selectedDay, days]);
+
+  const selectDay = (day) => {
+    dispatch(setDay({ day: day.toLocaleDateString() }));
+  };
 
   const isToday = (day) =>
     day.toLocaleDateString() === new Date().toLocaleDateString();
@@ -62,35 +92,41 @@ const DaysTable = ({ selectDay, tasks }) => {
     }
   };
 
+  const getDayInfo = (day) => {
+    const dayTasks = tasks[day.toLocaleDateString()];
+    let done = false;
+    let undone = false;
+    if (dayTasks) {
+      done = !!Object.values(dayTasks).find((task) => task.done);
+      undone = !!Object.values(dayTasks).find((task) => !task.done);
+    }
+
+    const selected = day.toLocaleDateString() === selectedDay;
+
+    return { done, undone, selected };
+  };
+
+  const getDayLabels = (day) => [
+    day.toDateString().slice(0, 4),
+    day.getDate(),
+    months[day.getMonth()],
+    day.getFullYear()
+  ];
+
   return (
     <TableContainer onScroll={scrollHandler}>
-      <Table aria-label="simple table" sx={{ width: 'auto' }}>
+      <Table aria-label="simple table" className={classes.table}>
         <TableBody>
           <TableRow>
             {days.map((day) => {
-              const dayTasks = tasks[day.toLocaleDateString()];
-              let done = false;
-              let undone = false;
-              if (dayTasks) {
-                done = !!Object.values(dayTasks).find((task) => task.done);
-                undone = !!Object.values(dayTasks).find((task) => !task.done);
-              }
-
-              const selected = day.toLocaleDateString() === selectedDay;
+              const { done, undone, selected } = getDayInfo(day);
 
               return (
-                <TableCell
-                  key={day}
-                  sx={{
-                    borderBottom: 'none',
-                    textAlign: 'center'
-                  }}
-                >
+                <TableCell key={day} className={classes.cell}>
                   <Card
                     variant="outlined"
+                    className={classes.card}
                     sx={{
-                      borderRadius: '25%',
-                      width: '110px',
                       border: selected ? 3 : 1,
                       borderColor: selected ? 'primary.main' : 'black',
                       backgroundColor: isToday(day) ? 'lightgrey' : 'white'
@@ -98,19 +134,14 @@ const DaysTable = ({ selectDay, tasks }) => {
                     onClick={() => selectDay(day)}
                   >
                     <CardContent>
-                      {[
-                        day.toDateString().slice(0, 4),
-                        day.getDate(),
-                        months[day.getMonth()],
-                        day.getFullYear()
-                      ].map((label) => (
-                        <Typography
+                      {getDayLabels(day).map((label) => (
+                        <StyledTypography
                           key={label}
                           color={selected ? 'primary' : 'black'}
-                          sx={{ fontWeight: selected ? 600 : 500 }}
+                          selected={selected ? 'selected' : undefined}
                         >
                           {label}
-                        </Typography>
+                        </StyledTypography>
                       ))}
                     </CardContent>
                   </Card>
@@ -124,12 +155,6 @@ const DaysTable = ({ selectDay, tasks }) => {
       </Table>
     </TableContainer>
   );
-};
-
-DaysTable.propTypes = {
-  selectDay: PropTypes.func.isRequired,
-  // eslint-disable-next-line react/forbid-prop-types
-  tasks: PropTypes.object.isRequired
 };
 
 export default DaysTable;

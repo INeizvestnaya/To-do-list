@@ -9,19 +9,25 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import { selectTask } from '../../redux/TasksSlice';
+import { CALENDAR, TASK_EDITOR } from '../../constants/routes';
+import { selectUser } from '../../redux/selectors';
+import { setTask } from '../../redux/TasksSlice';
 import { deleteTask, toggleCheckTask } from '../../utils/firestoreActions';
-import Confirmation from '../Confirmation/Confirmation';
+import Confirmation from '../Confirmation';
+import classes from './BottomMenu.module.css';
+
+const UNDO = 'Undo';
+const COMPLETE = 'Complete';
 
 const BottomMenu = ({ selectedTask, selectedDay }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.tasks.user);
+  const user = useSelector(selectUser);
 
   const [confirmOpened, setConfirmOpened] = useState(false);
 
-  const unselectTask = () => dispatch(selectTask({ task: null }));
+  const unselectTask = () => dispatch(setTask({ task: null }));
 
   const checkTaskClick = () => {
     unselectTask();
@@ -36,7 +42,7 @@ const BottomMenu = ({ selectedTask, selectedDay }) => {
   const confirmDeletion = async () => {
     deleteTask(user, selectedDay, selectedTask[0]);
     unselectTask();
-    navigate('/calendar');
+    navigate(CALENDAR);
   };
 
   const cancelDeletion = () => {
@@ -44,7 +50,7 @@ const BottomMenu = ({ selectedTask, selectedDay }) => {
   };
 
   const editButtonClick = () => {
-    navigate('/task-editor');
+    navigate(TASK_EDITOR);
   };
 
   return (
@@ -56,21 +62,21 @@ const BottomMenu = ({ selectedTask, selectedDay }) => {
       >
         Do you really want to delete the task?
       </Confirmation>
-      <Box marginLeft={4} marginRight={6} sx={{ display: 'flex' }}>
-        <IconButton sx={{ marginRight: 2 }} onClick={deleteButtonClick}>
+      <Box marginLeft={4} marginRight={6} className={classes.buttonsBox}>
+        <IconButton onClick={deleteButtonClick}>
           <DeleteIcon />
         </IconButton>
         <IconButton onClick={editButtonClick}>
           <EditIcon />
         </IconButton>
-        <Box sx={{ flexGrow: 1, textAlign: 'end' }}>
+        <Box className={classes.button}>
           <Button
             color="secondary"
             variant="contained"
             endIcon={<CheckIcon />}
             onClick={checkTaskClick}
           >
-            {selectedTask[1].done ? 'Undo' : 'Complete'}
+            {selectedTask[1].done ? UNDO : COMPLETE}
           </Button>
         </Box>
       </Box>

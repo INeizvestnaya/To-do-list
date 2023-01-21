@@ -7,23 +7,25 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 
-import { selectTask } from '../../redux/TasksSlice';
+import { TASK_PAGE } from '../../constants/routes';
+import { selectDay, selectUser } from '../../redux/selectors';
+import { setTask } from '../../redux/TasksSlice';
 import { toggleCheckTask } from '../../utils/firestoreActions';
 
 const Task = ({ task }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const selectedDay = useSelector((state) => state.tasks.selectedDay);
-  const user = useSelector((state) => state.tasks.user);
+  const selectedDay = useSelector(selectDay);
+  const user = useSelector(selectUser);
 
   const checkIconClick = () => {
     toggleCheckTask(user, selectedDay, ...task);
   };
 
   const editTask = () => {
-    dispatch(selectTask({ task }));
-    navigate('/task');
+    dispatch(setTask({ task }));
+    navigate(TASK_PAGE);
   };
 
   return (

@@ -9,25 +9,28 @@ import { useNavigate } from 'react-router-dom';
 
 import BottomMenu from '../../components/BottomMenu/BottomMenu';
 import HeaderBar from '../../components/HeaderBar/HeaderBar';
-import { selectTask } from '../../redux/TasksSlice';
+import { CALENDAR } from '../../constants/routes';
+import { selectDay, selectTask } from '../../redux/selectors';
+import { setTask } from '../../redux/TasksSlice';
+import classes from './TaskPage.module.css';
 
 const TaskPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const selectedDay = useSelector((state) => state.tasks.selectedDay);
-  const selectedTask = useSelector((state) => state.tasks.selectedTask);
+  const selectedDay = useSelector(selectDay);
+  const selectedTask = useSelector(selectTask);
 
   const goBack = () => {
-    dispatch(selectTask({ task: null }));
-    navigate('/calendar');
+    dispatch(setTask({ task: null }));
+    navigate(CALENDAR);
   };
 
   return (
     <>
       <HeaderBar
         leftItem={
-          <IconButton key="back" onClick={goBack} sx={{ color: 'white' }}>
+          <IconButton onClick={goBack} className={classes.headerIcon}>
             <ArrowBackIosIcon />
           </IconButton>
         }
@@ -36,7 +39,7 @@ const TaskPage = () => {
       </HeaderBar>
       {selectedTask ? (
         <>
-          <Box margin={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box margin={2} className={classes.taskBox}>
             {selectedTask[1].done ? (
               <CheckCircleOutlineIcon color="primary" />
             ) : (

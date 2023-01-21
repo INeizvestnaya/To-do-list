@@ -4,17 +4,14 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import PropTypes from 'prop-types';
 
+import classes from './Confirmation.module.css';
+
 const Confirmation = ({ children, opened, confirm, cancel }) => {
   return (
     <Dialog open={opened} onClose={cancel}>
       <DialogTitle>{children}</DialogTitle>
-      <Box margin={2} sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={confirm}
-          sx={{ marginRight: 2 }}
-        >
+      <Box margin={2} className={classes.modal}>
+        <Button variant="contained" color="secondary" onClick={confirm}>
           Yes
         </Button>
         <Button color="secondary" variant="contained" onClick={cancel}>

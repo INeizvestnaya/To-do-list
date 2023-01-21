@@ -120,6 +120,10 @@ A code formatter to write code in same style everywhere.
 
 A library, used for formatting date with Material UI.
 
+### Styled components
+
+A library to create styled react components.
+
 ## Folders of the application
 
 ### .husky
@@ -153,3 +157,11 @@ Contains redux logic.
 ### src/utils
 
 Contains different helper functions.
+
+### src/constants
+
+Contains global constants of the application.
+
+### src/routes
+
+Contains router logic of the application.

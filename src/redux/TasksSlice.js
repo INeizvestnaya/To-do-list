@@ -1,12 +1,11 @@
-import { createSlice } from '@reduxjs/toolkit';
+/* eslint-disable no-param-reassign */
 
-import { auth } from '../firebase-config';
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   tasks: {},
   selectedDay: new Date().toLocaleDateString(),
-  selectedTask: null,
-  user: auth.currentUser?.uid
+  selectedTask: null
 };
 
 const TasksSlice = createSlice({
@@ -14,25 +13,17 @@ const TasksSlice = createSlice({
   initialState,
   reducers: {
     updateTasks: (state, action) => {
-      // eslint-disable-next-line no-param-reassign
       state.tasks = action.payload.tasks;
     },
-    selectDay: (state, action) => {
-      // eslint-disable-next-line no-param-reassign
+    setDay: (state, action) => {
       state.selectedDay = action.payload.day;
     },
-    selectTask: (state, action) => {
-      // eslint-disable-next-line no-param-reassign
+    setTask: (state, action) => {
       state.selectedTask = action.payload.task;
-    },
-    setUser: (state, action) => {
-      // eslint-disable-next-line no-param-reassign
-      state.user = action.payload;
     }
   }
 });
 
-export const { updateTasks, selectDay, selectTask, setUser } =
-  TasksSlice.actions;
+export const { updateTasks, setDay, setTask } = TasksSlice.actions;
 
 export default TasksSlice.reducer;

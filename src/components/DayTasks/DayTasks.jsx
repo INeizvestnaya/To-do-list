@@ -1,9 +1,15 @@
 import List from '@mui/material/List';
-import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
+import { selectAllTasks, selectDay } from '../../redux/selectors';
 import Task from '../Task/Task';
 
-const DayTasks = ({ dayTasks }) => {
+const DayTasks = () => {
+  const tasks = useSelector(selectAllTasks);
+  const selectedDay = useSelector(selectDay);
+
+  const dayTasks = tasks[selectedDay];
+
   if (!dayTasks) {
     return null;
   }
@@ -30,15 +36,6 @@ const DayTasks = ({ dayTasks }) => {
       ))}
     </List>
   );
-};
-
-DayTasks.defaultProps = {
-  dayTasks: {}
-};
-
-DayTasks.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  dayTasks: PropTypes.object
 };
 
 export default DayTasks;

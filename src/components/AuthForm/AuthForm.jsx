@@ -6,11 +6,30 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { Fragment } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 
+import { CALENDAR } from '../../constants/routes';
 import { auth } from '../../firebase-config';
+import classes from './AuthForm.module.css';
+
+const emailRules = {
+  required: { value: true, message: 'Enter email address!' },
+  pattern: {
+    value: /^\S+?@\w+?\.\w+?$/,
+    message: 'Enter valid email address!'
+  }
+};
+
+const passwordRules = {
+  required: { value: true, message: 'Enter password!' },
+  minLength: {
+    value: 7,
+    message: 'Password must contain at least 7 characters!'
+  }
+};
 
 const AuthForm = ({
   submitCallback,
@@ -19,69 +38,83 @@ const AuthForm = ({
 }) => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const textFields = [
-    {
-      label: 'Email address',
-      name: 'email',
-      autoComplete: 'email',
-      autoFocus: true,
-      onChange: (event) => setEmail(event.target.value),
-      value: email
-    },
-    {
-      label: 'Password',
-      name: 'password',
-      type: 'password',
-      onChange: (event) => setPassword(event.target.value),
-      value: password
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    reset
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: ''
     }
-  ];
+  });
 
-  const submitHandler = async (event) => {
-    event.preventDefault();
-
+  const submitHandler = async ({ email, password }) => {
     try {
       await submitCallback(auth, email, password);
-      navigate('/calendar');
+      navigate(CALENDAR);
     } catch (error) {
       toast.error(error.message);
-
-      setEmail('');
-      setPassword('');
+      reset();
     }
   };
+
+  const inputs = [
+    {
+      name: 'email',
+      rules: emailRules,
+      label: 'Email',
+      autoFocus: true,
+      type: 'text',
+      errorLabel: errors.email?.message
+    },
+    {
+      name: 'password',
+      rules: passwordRules,
+      label: 'Password',
+      autoFocus: false,
+      type: 'password',
+      errorLabel: errors.password?.message
+    }
+  ];
 
   return (
     <>
       <ToastContainer position="top-center" theme="colored" />
       <Box
         component="form"
-        onSubmit={submitHandler}
-        sx={{ width: '50%', margin: '30px auto' }}
+        onSubmit={handleSubmit(submitHandler)}
+        className={classes.box}
       >
         <Typography component="h1" variant="h5">
           {formLabel}
         </Typography>
-        {textFields.map((field) => (
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            {...field}
-            key={field.name}
-          />
+        {inputs.map((input) => (
+          <Fragment key={input.name}>
+            <Controller
+              name={input.name}
+              control={control}
+              rules={input.rules}
+              render={({ field }) => (
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label={input.label}
+                  autoFocus={input.autoFocus}
+                  type={input.type}
+                  {...field}
+                />
+              )}
+            />
+            <Typography variant="caption" color="error">
+              {input.errorLabel}
+            </Typography>
+          </Fragment>
         ))}
-        <Grid container alignItems="center">
+        <Grid marginTop={2} container alignItems="center">
           <Grid item xs>
-            <Button
-              color="secondary"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button color="secondary" type="submit" variant="contained">
               {formLabel}
             </Button>
           </Grid>

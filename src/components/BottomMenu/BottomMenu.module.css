@@ -1,0 +1,9 @@
+.buttonsBox {
+  display: flex;
+  gap: 15px;
+}
+
+.button {
+  flex-grow: 1;
+  text-align: end;
+}

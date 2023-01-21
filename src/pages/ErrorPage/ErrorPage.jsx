@@ -4,12 +4,16 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router';
 
 import HeaderBar from '../../components/HeaderBar/HeaderBar';
+import { CALENDAR, SIGN_IN as SIGN_IN_PATH } from '../../constants/routes';
+
+const MAIN_PAGE = 'Main page';
+const SIGN_IN = 'SIgn in';
 
 const ErrorPage = ({ user, children }) => {
   const navigate = useNavigate();
 
   const redirect = () => {
-    navigate(user ? '/calendar' : '/sign-in');
+    navigate(user ? CALENDAR : SIGN_IN_PATH);
   };
 
   return (
@@ -17,7 +21,7 @@ const ErrorPage = ({ user, children }) => {
       <HeaderBar
         rightItem={
           <Button color="inherit" onClick={redirect} key="logout">
-            {user ? 'Main page' : 'Sign in'}
+            {user ? MAIN_PAGE : SIGN_IN}
           </Button>
         }
       >

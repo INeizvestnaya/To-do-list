@@ -1,18 +1,54 @@
+/* eslint-disable consistent-return */
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { useCallback, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router';
 
-import Confirmation from '../../components/Confirmation/Confirmation';
+import Confirmation from '../../components/Confirmation';
 import HeaderBar from '../../components/HeaderBar/HeaderBar';
-import { selectDay, selectTask } from '../../redux/TasksSlice';
+import { CALENDAR } from '../../constants/routes';
+import { selectDay, selectTask, selectUser } from '../../redux/selectors';
+import { setDay, setTask } from '../../redux/TasksSlice';
 import { addTask } from '../../utils/firestoreActions';
+import getToday from '../../utils/getToday';
+import classes from './TaskEditor.module.css';
+
+const getFormattedDate = (day) => {
+  const dayItems = day.split('.');
+  return dayjs(`${dayItems[2]}-${dayItems[1]}-${dayItems[0]}`);
+};
+
+const getDateErrorMessage = (error) => {
+  if (!error) {
+    return;
+  }
+
+  if (error.type === 'validate') {
+    return 'Enter valid date!';
+  }
+
+  return error.message;
+};
+
+const isDateValid = (date) =>
+  date.isValid() &&
+  date.toDate() < new Date(2100, 0, 1) &&
+  date.toDate() > getToday();
+
+const NEW_TASK = '?new-task';
+const SAVE = 'Save';
+const UPDATE = 'Update';
+const DATE_FORMAT = 'DD.MM.YYYY';
+const DATE_INPUT_FORMAT = 'DD/MM/YYYY';
 
 const TaskEditor = () => {
   const navigate = useNavigate();
@@ -20,64 +56,57 @@ const TaskEditor = () => {
 
   const { search } = useLocation();
 
-  const selectedTask = useSelector((state) => state.tasks.selectedTask);
-  const selectedDay = useSelector((state) => state.tasks.selectedDay);
-  const user = useSelector((state) => state.tasks.user);
+  const selectedTask = useSelector(selectTask);
+  const selectedDay = useSelector(selectDay);
+  const user = useSelector(selectUser);
 
-  const [name, setName] = useState(selectedTask?.[0] || '');
-
-  const [description, setDescription] = useState(
-    selectedTask?.[1].description || ''
-  );
-
-  const [date, setDate] = useState(() => {
-    const dayItems = selectedDay.split('.');
-    return dayjs(`${dayItems[2]}-${dayItems[1]}-${dayItems[0]}`);
+  const {
+    control,
+    formState: { errors },
+    handleSubmit
+  } = useForm({
+    defaultValues: {
+      name: selectedTask?.[0] || '',
+      description: selectedTask?.[1].description || '',
+      date: getFormattedDate(selectedDay)
+    }
   });
 
   const [confirmOpened, setConfirmOpened] = useState({ opened: false });
 
-  const nameChange = (event) => {
-    setName(event.target.value);
-  };
-
-  const descriptionChange = (event) => {
-    setDescription(event.target.value);
-  };
-
-  const dateChange = (value) => {
-    setDate(value);
+  const changeConfirmState = (opened, home) => {
+    setConfirmOpened({ opened, home });
   };
 
   const homeClick = useCallback(() => {
-    setConfirmOpened({ opened: true, home: true });
+    changeConfirmState(true, true);
   }, []);
 
   const cancelClick = () => {
-    setConfirmOpened({ opened: true, home: false });
+    changeConfirmState(true, false);
   };
 
   const cancelConfirmation = () => {
-    setConfirmOpened({ opened: false });
+    changeConfirmState(false, false);
   };
 
-  const unselectTask = () => dispatch(selectTask({ task: null }));
+  const unselectTask = () => dispatch(setTask({ task: null }));
 
   const confirm = () => {
     if (confirmOpened.home) {
       unselectTask();
-      navigate('/calendar');
+      navigate(CALENDAR);
     } else {
       navigate(-1);
     }
   };
 
-  const save = () => {
-    const newTaskDate = date.format('DD.MM.YYYY');
-    const prevDate = search !== '?new-task' ? selectedDay : null;
+  const save = ({ name, description, date }) => {
+    const newTaskDate = date.format(DATE_FORMAT);
+    const prevDate = search !== NEW_TASK ? selectedDay : null;
 
     unselectTask();
-    dispatch(selectDay({ day: newTaskDate }));
+    dispatch(setDay({ day: newTaskDate }));
     addTask(
       user,
       newTaskDate,
@@ -87,7 +116,7 @@ const TaskEditor = () => {
       prevDate
     );
 
-    navigate('/calendar');
+    navigate(CALENDAR);
   };
 
   const HeaderButton = useMemo(
@@ -109,48 +138,70 @@ const TaskEditor = () => {
         Do you really want to exit?
       </Confirmation>
       <HeaderBar rightItem={HeaderButton}>Create a task</HeaderBar>
-      <Box
-        margin={2}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '50%' }}
-      >
-        <TextField
-          label="Task name"
-          variant="outlined"
-          value={name}
-          onChange={nameChange}
-        />
-        <TextField
-          label="Task description"
-          value={description}
-          multiline
-          rows={4}
-          onChange={descriptionChange}
-        />
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DesktopDatePicker
-            label="Date of the task"
-            inputFormat="DD/MM/YYYY"
-            onChange={dateChange}
-            value={date}
-            renderInput={(params) => <TextField {...params} />}
-          />
-        </LocalizationProvider>
-      </Box>
-      <Box
-        marginX={2}
-        sx={{ display: 'flex', gap: 2, justifyContent: 'end', width: '50%' }}
-      >
-        <Button color="secondary" variant="contained" onClick={cancelClick}>
-          Cancel
-        </Button>
-        <Button
-          color="secondary"
-          variant="contained"
-          onClick={save}
-          disabled={!name || !date}
+      <Box className={classes.box}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit(save)}
+          margin={2}
+          className={classes.form}
         >
-          {search === '?new-task' ? 'Save' : 'Update'}
-        </Button>
+          <Controller
+            name="name"
+            control={control}
+            rules={{
+              required: { value: true, message: 'Enter name of the task!' }
+            }}
+            render={({ field }) => (
+              <TextField label="Task name" variant="outlined" {...field} />
+            )}
+          />
+          <Typography variant="caption" color="error">
+            {errors.name?.message}
+          </Typography>
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                label="Task description"
+                variant="outlined"
+                multiline
+                rows={4}
+                {...field}
+              />
+            )}
+          />
+          <Controller
+            name="date"
+            control={control}
+            rules={{
+              required: { value: true, message: 'Enter date of the task!' },
+              validate: isDateValid
+            }}
+            render={({ field }) => (
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DesktopDatePicker
+                  label="Date of the task"
+                  inputFormat={DATE_INPUT_FORMAT}
+                  className={classes.dateInput}
+                  renderInput={(params) => <TextField {...params} />}
+                  {...field}
+                />
+              </LocalizationProvider>
+            )}
+          />
+          <Typography variant="caption" color="error">
+            {getDateErrorMessage(errors.date)}
+          </Typography>
+          <Box marginX={2} className={classes.buttons}>
+            <Button color="secondary" variant="contained" onClick={cancelClick}>
+              Cancel
+            </Button>
+            <Button color="secondary" variant="contained" type="submit">
+              {search === NEW_TASK ? SAVE : UPDATE}
+            </Button>
+          </Box>
+        </Box>
       </Box>
     </>
   );

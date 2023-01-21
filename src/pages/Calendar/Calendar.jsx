@@ -1,38 +1,33 @@
+import './Calendar.css';
+
 import Button from '@mui/material/Button';
 import { signOut } from 'firebase/auth';
 import { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 
 import DaysTable from '../../components/DaysTable/DaysTable';
 import DayTasks from '../../components/DayTasks';
 import HeaderBar from '../../components/HeaderBar/HeaderBar';
+import { NEW_TASK, SIGN_IN } from '../../constants/routes';
 import { auth } from '../../firebase-config';
-import { selectDay as SelectDayAction } from '../../redux/TasksSlice';
+
+const GUEST = 'Guest';
 
 const Calendar = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const tasks = useSelector((state) => state.tasks.tasks);
-  const selectedDay = useSelector((state) => state.tasks.selectedDay);
-
-  const selectDay = (day) => {
-    dispatch(SelectDayAction({ day: day.toLocaleDateString() }));
-  };
 
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
-      navigate('/sign-in');
+      navigate(SIGN_IN);
     } catch (error) {
       toast.error(error.message);
     }
   }, []);
 
   const addTask = () => {
-    navigate('/task-editor?new-task');
+    navigate(NEW_TASK);
   };
 
   const HeaderButton = useMemo(
@@ -48,14 +43,14 @@ const Calendar = () => {
     <>
       <ToastContainer position="top-center" theme="colored" />
       <HeaderBar rightItem={HeaderButton}>
-        {auth.currentUser?.email || 'Guest'}
+        {auth.currentUser?.email || GUEST}
       </HeaderBar>
-      <DaysTable selectDay={selectDay} tasks={tasks} />
-      <DayTasks dayTasks={tasks[selectedDay]} />
+      <DaysTable />
+      <DayTasks />
       <Button
         color="secondary"
         variant="contained"
-        sx={{ margin: 2 }}
+        className="calendar-button"
         onClick={addTask}
       >
         Add Task
