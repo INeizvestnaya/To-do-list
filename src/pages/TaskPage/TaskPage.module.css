@@ -1,0 +1,8 @@
+.headerIcon {
+  color: white !important;
+}
+
+.taskBox {
+  display: flex;
+  align-items: center;
+}

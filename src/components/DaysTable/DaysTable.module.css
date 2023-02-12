@@ -1,0 +1,13 @@
+.table {
+  width: auto;
+}
+
+.cell {
+  border-bottom: none !important;
+  text-align: center !important;
+}
+
+.card {
+  border-radius: 25% !important;
+  width: 110px;
+}
